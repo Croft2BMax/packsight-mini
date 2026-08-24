@@ -1,0 +1,43 @@
+{
+  "model_name": "IsolationForest",
+  "generated_at": "2026-08-24T15:43:03.750500+00:00",
+  "dataset": {
+    "total_records": 500,
+    "total_injected_anomalies": 25,
+    "training_records": 400,
+    "training_anomalies": 20,
+    "testing_records": 100,
+    "testing_anomalies": 5
+  },
+  "configuration": {
+    "test_size": 0.2,
+    "contamination": 0.05,
+    "n_estimators": 100,
+    "random_seed": 42,
+    "numeric_features": [
+      "ordered_quantity",
+      "unit_price",
+      "defect_rate",
+      "lead_time_days",
+      "order_value"
+    ],
+    "categorical_features": [
+      "product_type"
+    ]
+  },
+  "evaluation": {
+    "precision_anomaly": 0.6667,
+    "recall_anomaly": 0.8,
+    "f1_anomaly": 0.7273,
+    "confusion_matrix": {
+      "true_negative": 93,
+      "false_positive": 2,
+      "false_negative": 1,
+      "true_positive": 4
+    }
+  },
+  "environment": {
+    "python_version": "3.12.14",
+    "scikit_learn_version": "1.9.0"
+  }
+}

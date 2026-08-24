@@ -1,0 +1,33 @@
+{
+  "name": "packsight-mini",
+  "version": "1.0.0",
+  "description": "Mock ERP API and analytics workflow for packaging order anomaly detection",
+  "main": "api/server.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node api/server.js",
+    "dev": "node --watch api/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Croft2BMax/packsight-mini.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Croft2BMax/packsight-mini/issues"
+  },
+  "homepage": "https://github.com/Croft2BMax/packsight-mini#readme",
+  "engines": {
+    "node": ">=20.19 <25"
+  },
+  "private": true,
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

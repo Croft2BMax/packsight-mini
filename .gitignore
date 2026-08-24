@@ -1,0 +1,21 @@
+# Python virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Environment variables and secrets
+.env
+
+# Generated model files
+artifacts/*.joblib
+
+# Generated runtime reports
+data/latest-report.json
+
+# Node.js dependencies
+node_modules/
+
+# Local n8n state
+.n8n/

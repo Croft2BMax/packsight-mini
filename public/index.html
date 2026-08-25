@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+  <meta
+    name="description"
+    content="PackSight Mini dashboard for packaging order anomaly detection."
+  >
+
+  <title>PackSight Mini | Packaging Anomaly Dashboard</title>
+
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="PackSight Mini dashboard">
+      <span class="brand-mark" aria-hidden="true">P</span>
+
+      <span>
+        <strong>PackSight</strong>
+        <small>Operations Analytics</small>
+      </span>
+    </a>
+
+    <div class="topbar-actions">
+      <div
+        id="connection-pill"
+        class="connection-pill"
+        data-state="loading"
+        role="status"
+      >
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="connection-label">Menghubungkan...</span>
+      </div>
+
+      <button id="refresh-button" class="refresh-button" type="button">
+        Refresh data
+      </button>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="hero" aria-labelledby="page-title">
+      <div class="hero-copy">
+        <p class="eyebrow">
+          Operations dashboard / packaging
+        </p>
+
+        <h1 id="page-title">
+          Packaging Order Monitor
+        </h1>
+
+        <p class="hero-description">
+          Laporan terbaru dari pipeline deteksi anomali order.
+          Gunakan dashboard ini untuk menentukan prioritas
+          pemeriksaan Quality Control dan operasional produksi.
+        </p>
+      </div>
+
+      <aside class="hero-status" aria-label="Status analisis terbaru">
+        <span id="status-badge" class="status-badge">
+          Memuat status
+        </span>
+
+        <p id="report-summary" aria-live="polite">
+          Mengambil laporan analisis terbaru...
+        </p>
+
+        <time id="analysis-time">
+          Waktu analisis belum tersedia
+        </time>
+      </aside>
+    </section>
+
+    <section
+      id="loading-state"
+      class="state-panel"
+      role="status"
+      aria-live="polite"
+    >
+      <span class="loading-indicator" aria-hidden="true"></span>
+
+      <div>
+        <h2>Memuat laporan</h2>
+        <p>Dashboard sedang mengambil data dari Mock ERP API.</p>
+      </div>
+    </section>
+
+    <section
+      id="error-state"
+      class="state-panel error-state"
+      role="alert"
+      hidden
+    >
+      <div>
+        <h2>Laporan belum dapat ditampilkan</h2>
+        <p id="error-message">
+          Pastikan Mock ERP API aktif dan analisis sudah dijalankan.
+        </p>
+      </div>
+
+      <button id="retry-button" class="secondary-button" type="button">
+        Coba lagi
+      </button>
+    </section>
+
+    <section id="dashboard-content" hidden>
+      <section class="kpi-grid" aria-label="KPI produksi">
+        <article class="kpi-card">
+          <span class="kpi-label">Order dianalisis</span>
+          <strong id="record-count" class="kpi-value">—</strong>
+          <small id="normal-count">— order normal</small>
+        </article>
+
+        <article class="kpi-card kpi-card-alert">
+          <span class="kpi-label">Order anomali</span>
+          <strong id="anomaly-count" class="kpi-value">—</strong>
+          <small>Perlu pemeriksaan manual</small>
+        </article>
+
+        <article class="kpi-card">
+          <span class="kpi-label">Overall defect rate</span>
+          <strong id="defect-rate" class="kpi-value">—</strong>
+          <small>Produk cacat ÷ total produksi</small>
+        </article>
+
+        <article class="kpi-card">
+          <span class="kpi-label">Average lead time</span>
+          <strong id="average-lead-time" class="kpi-value">—</strong>
+          <small>Durasi order sampai selesai</small>
+        </article>
+
+        <article class="kpi-card">
+          <span class="kpi-label">Total nilai order</span>
+          <strong id="total-order-value" class="kpi-value">—</strong>
+          <small>Quantity order × harga satuan</small>
+        </article>
+
+        <article class="kpi-card">
+          <span class="kpi-label">Total produk cacat</span>
+          <strong id="total-defects" class="kpi-value">—</strong>
+          <small>Akumulasi defect count</small>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <article class="panel panel-wide">
+          <header class="panel-header">
+            <div>
+              <p class="section-kicker">Exception queue</p>
+              <h2>Order yang perlu diperiksa</h2>
+            </div>
+
+            <span id="anomaly-total-label" class="count-badge">
+              0 order
+            </span>
+          </header>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Order</th>
+                  <th scope="col">Product</th>
+                  <th scope="col">Defect rate</th>
+                  <th scope="col">Lead time</th>
+                  <th scope="col">Order value</th>
+                  <th scope="col">Temuan dan rekomendasi</th>
+                </tr>
+              </thead>
+
+              <tbody id="anomaly-table-body"></tbody>
+            </table>
+          </div>
+
+          <div id="no-anomalies" class="empty-state" hidden>
+            <strong>Tidak ada anomali yang ditemukan.</strong>
+            <p>Seluruh order berada dalam pola historis model.</p>
+          </div>
+        </article>
+
+        <aside class="panel context-panel">
+          <div>
+            <p class="section-kicker">Run metadata</p>
+            <h2>Detail analisis</h2>
+          </div>
+
+          <dl class="metadata-list">
+            <div>
+              <dt>Model</dt>
+              <dd id="model-name">—</dd>
+            </div>
+
+            <div>
+              <dt>Data source</dt>
+              <dd id="source-name">—</dd>
+            </div>
+
+            <div>
+              <dt>Analyzed at</dt>
+              <dd id="analyzed-at">—</dd>
+            </div>
+
+            <div>
+              <dt>Saved at</dt>
+              <dd id="saved-at">—</dd>
+            </div>
+
+            <div>
+              <dt>Analysis ID</dt>
+              <dd id="analysis-id">—</dd>
+            </div>
+          </dl>
+
+          <div class="model-note">
+            <strong>Anomali bukan vonis.</strong>
+
+            <p>
+              Isolation Forest menandai pola yang tidak biasa.
+              Keputusan operasional tetap memerlukan pemeriksaan manusia.
+            </p>
+          </div>
+
+          <div class="pipeline-block">
+            <h3>Automation flow</h3>
+
+            <ol class="pipeline-list">
+              <li>Mock ERP menyediakan data order</li>
+              <li>n8n mengatur alur otomatisasi</li>
+              <li>FastAPI menjalankan inference</li>
+              <li>Node.js menyimpan laporan</li>
+              <li>Telegram mengirim alert</li>
+            </ol>
+          </div>
+        </aside>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      PackSight Mini • Portfolio project for AI and data engineering
+    </p>
+
+    <p>Python • Isolation Forest • FastAPI • Node.js • n8n</p>
+  </footer>
+
+  <noscript>
+    Dashboard membutuhkan JavaScript untuk mengambil laporan terbaru.
+  </noscript>
+</body>
+</html>

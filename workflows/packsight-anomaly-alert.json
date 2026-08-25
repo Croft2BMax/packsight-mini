@@ -1,0 +1,226 @@
+{
+  "name": "PackSight - Packaging Anomaly Alert",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        -112
+      ],
+      "id": "4779e337-4015-4764-9d6f-d65248a1f429",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "http://127.0.0.1:3000/api/orders",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -208,
+        -48
+      ],
+      "id": "38230a07-75bb-475a-994f-36d0a2ea7148",
+      "name": "Get Orders from Mock ERP"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/analyze",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        16,
+        -48
+      ],
+      "id": "1d3c558b-d7bf-49f7-98f3-b9d8f06d32df",
+      "name": "Analyze Orders with Isolation Forest"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:3000/api/reports",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        240,
+        -48
+      ],
+      "id": "0f82dc3c-c8a3-45cf-b493-d0abc3ff5623",
+      "name": "Save Analysis Report"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7c596c35-0a1c-4d47-b37e-61d1a1aea14e",
+              "leftValue": "={{ $json.anomaly_count }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        464,
+        -48
+      ],
+      "id": "a60d26e3-d58b-4fc0-a0f7-70d6d71a39e7",
+      "name": "Are Anomalies Detected?"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "={{ \n`PACKSIGHT ANOMALY ALERT\n\nStatus: ${$json.status.toUpperCase()}\nAnalysis ID: ${$json.analysis_id}\nSource: ${$json.source}\n\nRINGKASAN\nTotal order dianalisis: ${$json.record_count}\nOrder normal: ${$json.normal_count}\nOrder anomali: ${$json.anomaly_count}\n\nKPI PRODUKSI\nTotal nilai order: Rp ${Number($json.kpis.total_order_value).toLocaleString('id-ID')}\nTotal produksi: ${Number($json.kpis.total_produced_quantity).toLocaleString('id-ID')} unit\nTotal produk cacat: ${Number($json.kpis.total_defect_count).toLocaleString('id-ID')} unit\nDefect rate keseluruhan: ${$json.kpis.overall_defect_rate_pct}%\nRata-rata lead time: ${$json.kpis.average_lead_time_days} hari\n\nORDER YANG PERLU DIPERIKSA\n\n${$json.anomalies.map((item, index) => \n`${index + 1}. ${item.order_id} — ${item.product_type}\n   Defect rate: ${item.defect_rate_pct}%\n   Lead time: ${item.lead_time_days} hari\n   Ordered quantity: ${Number(item.ordered_quantity).toLocaleString('id-ID')}\n   Alasan: ${item.reasons.join('; ')}\n   Rekomendasi: ${item.recommendations.join('; ')}`\n).join('\\n\\n')}\n\nMohon lakukan pemeriksaan manual sebelum mengambil keputusan operasional.`\n}}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        688,
+        -80
+      ],
+      "id": "6ca7b280-ad9b-49e8-b616-9e94fdd30995",
+      "name": "Send Telegram Anomaly Alert",
+      "webhookId": "96625627-1b0c-402d-9861-539ab3987c39",
+      "credentials": {
+        "telegramApi": {
+          "id": "kHCpNKsOicpliHXF",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -416,
+        64
+      ],
+      "id": "52cc8ed8-5b4f-44a1-8455-f142ed4769dc",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get Orders from Mock ERP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Orders from Mock ERP": {
+      "main": [
+        [
+          {
+            "node": "Analyze Orders with Isolation Forest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Orders with Isolation Forest": {
+      "main": [
+        [
+          {
+            "node": "Save Analysis Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Analysis Report": {
+      "main": [
+        [
+          {
+            "node": "Are Anomalies Detected?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Are Anomalies Detected?": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Anomaly Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Orders from Mock ERP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "6278b3a0-60d3-4618-886e-05fc9f696283",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7d5bcc60cd8f4ac4532e7d8c65bc53a5a94bb33ae6b6d2b43b7e837ea036f0b9"
+  },
+  "nodeGroups": [],
+  "id": "iYnN0y3V21omjG6z",
+  "tags": []
+}
